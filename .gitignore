@@ -1,0 +1,15 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+*.xcarchive
+DerivedData/
+build/
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Export
+ExportOptions.plist
