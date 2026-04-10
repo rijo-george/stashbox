@@ -14,6 +14,7 @@ struct AssetDetailView: View {
     @State private var showingExport = false
     @State private var showingAddNote = false
     @State private var newNoteText = ""
+    @State private var showingDisposal = false
 
     private var liveAsset: Asset {
         store.asset(byID: asset.id) ?? asset
@@ -25,6 +26,9 @@ struct AssetDetailView: View {
 
         ScrollView {
             VStack(spacing: 16) {
+                if let disposal = current.disposal {
+                    disposalBanner(disposal, tc: tc)
+                }
                 headerCard(current, tc: tc)
                 warrantySection(current, tc: tc)
                 serviceSection(current, tc: tc)
@@ -50,6 +54,13 @@ struct AssetDetailView: View {
                         showingExport = true
                     } label: {
                         Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    if current.disposal == nil {
+                        Button {
+                            showingDisposal = true
+                        } label: {
+                            Label("Mark as Sold/Gifted...", systemImage: "arrow.right.circle")
+                        }
                     }
                     Button {
                         store.archiveAsset(current.id)
@@ -85,6 +96,9 @@ struct AssetDetailView: View {
         }
         .sheet(isPresented: $showingExport) {
             ExportSheet(asset: current)
+        }
+        .sheet(isPresented: $showingDisposal) {
+            DisposalSheet(assetID: current.id)
         }
         .alert("Delete Asset?", isPresented: $showingDeleteConfirm) {
             Button("Delete", role: .destructive) {
@@ -554,6 +568,36 @@ struct AssetDetailView: View {
             }
             Button("Cancel", role: .cancel) { newNoteText = "" }
         }
+    }
+
+    // MARK: - Disposal Banner
+
+    private func disposalBanner(_ disposal: DisposalInfo, tc: ThemeColors) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: disposal.type.icon)
+                .font(.system(size: 16))
+                .foregroundStyle(tc.warrantyExpiring)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(disposal.type.displayName) on \(displayDate(disposal.date))")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(tc.textPrimary)
+                if !disposal.toWhom.isEmpty {
+                    Text("To: \(disposal.toWhom)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(tc.textSecondary)
+                }
+                if let amount = disposal.amount {
+                    Text("for \(formatCurrency(amount))")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(tc.warrantyActive)
+                }
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(tc.warrantyExpiring.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(tc.warrantyExpiring.opacity(0.2), lineWidth: 1))
     }
 
     // MARK: - Helpers

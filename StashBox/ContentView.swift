@@ -46,6 +46,11 @@ struct ContentView: View {
                     Label("Scan", systemImage: "camera")
                 }
 
+            AnalyticsView()
+                .tabItem {
+                    Label("Analytics", systemImage: "chart.bar")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")

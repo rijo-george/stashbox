@@ -380,6 +380,58 @@ struct DocumentMetadata: Codable, Identifiable, Hashable {
     }
 }
 
+// MARK: - Disposal
+
+enum DisposalType: String, Codable, CaseIterable, Identifiable {
+    case sold
+    case gifted
+    case lost
+    case recycled
+    case trashed
+    case returned
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .sold: return "Sold"
+        case .gifted: return "Gifted"
+        case .lost: return "Lost"
+        case .recycled: return "Recycled"
+        case .trashed: return "Disposed"
+        case .returned: return "Returned"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .sold: return "dollarsign.circle"
+        case .gifted: return "gift"
+        case .lost: return "questionmark.circle"
+        case .recycled: return "arrow.3.trianglepath"
+        case .trashed: return "trash"
+        case .returned: return "arrow.uturn.left"
+        }
+    }
+}
+
+struct DisposalInfo: Codable, Hashable {
+    var type: DisposalType
+    var date: String
+    var toWhom: String
+    var amount: Double?
+    var notes: String
+
+    init(type: DisposalType = .sold, date: String = dateOnlyISO(), toWhom: String = "",
+         amount: Double? = nil, notes: String = "") {
+        self.type = type
+        self.date = date
+        self.toWhom = toWhom
+        self.amount = amount
+        self.notes = notes
+    }
+}
+
 // MARK: - Note
 
 struct Note: Codable, Identifiable, Hashable {
@@ -413,6 +465,7 @@ struct Asset: Codable, Identifiable, Hashable {
     var documentIDs: [String]
     var tags: [String]
     var isArchived: Bool
+    var disposal: DisposalInfo?
     var createdAt: String
     var updatedAt: String
 
@@ -422,7 +475,7 @@ struct Asset: Codable, Identifiable, Hashable {
          purchaseCurrency: String = Locale.current.currency?.identifier ?? "USD",
          retailer: String = "", notes: [Note] = [], warranties: [Warranty] = [],
          serviceRecords: [ServiceRecord] = [], documentIDs: [String] = [],
-         tags: [String] = [], isArchived: Bool = false,
+         tags: [String] = [], isArchived: Bool = false, disposal: DisposalInfo? = nil,
          createdAt: String = pythonISO(), updatedAt: String = pythonISO()) {
         self.id = id
         self.name = name
@@ -440,8 +493,17 @@ struct Asset: Codable, Identifiable, Hashable {
         self.documentIDs = documentIDs
         self.tags = tags
         self.isArchived = isArchived
+        self.disposal = disposal
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    var isDisposed: Bool { disposal != nil }
+
+    var statusLabel: String {
+        if let d = disposal { return d.type.displayName }
+        if isArchived { return "Archived" }
+        return "Active"
     }
 
     var totalServiceCost: Double {

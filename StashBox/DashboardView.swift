@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var store: AssetStore
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var pendingImports: PendingImportManager
     @State private var showingAddSheet = false
     @State private var searchText = ""
 
@@ -24,6 +25,38 @@ struct DashboardView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
+                            // Pending imports from Share Extension
+                            if pendingImports.hasPending {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "square.and.arrow.down.fill")
+                                        .foregroundStyle(tc.accent)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(pendingImports.pendingFiles.count) shared file\(pendingImports.pendingFiles.count == 1 ? "" : "s") waiting")
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundStyle(tc.textPrimary)
+                                        Text("Tap to import into StashBox")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(tc.textSecondary)
+                                    }
+                                    Spacer()
+                                    Button {
+                                        importPendingFiles()
+                                    } label: {
+                                        Text("Import")
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 6)
+                                            .background(tc.accent)
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                                .padding(12)
+                                .background(tc.accent.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(tc.accent.opacity(0.2), lineWidth: 1))
+                            }
+
                             // Needs Attention — the only section that matters
                             needsAttentionSection(tc: tc)
 
@@ -241,6 +274,31 @@ struct DashboardView: View {
         }.sorted {
             ($0.latestExpiry ?? .distantFuture) < ($1.latestExpiry ?? .distantFuture)
         }
+    }
+
+    private func importPendingFiles() {
+        for filename in pendingImports.pendingFiles {
+            guard let url = pendingImports.pendingFileURL(for: filename) else { continue }
+            let ext = (filename as NSString).pathExtension.lowercased()
+            if ext == "pdf" {
+                if let meta = DocumentStore.shared.saveFile(from: url, type: .receipt) {
+                    store.addDocumentMetadata(meta)
+                    // Create a placeholder asset
+                    let asset = Asset(name: "Imported Document", documentIDs: [meta.id])
+                    store.addAsset(asset)
+                }
+            } else {
+                // Image
+                if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                    let meta = DocumentStore.shared.saveImage(image, type: .receipt)
+                    store.addDocumentMetadata(meta)
+                    let asset = Asset(name: "Imported Receipt", documentIDs: [meta.id])
+                    store.addAsset(asset)
+                }
+            }
+        }
+        pendingImports.clearPending()
+        Haptic.fire(.success)
     }
 
     private var filteredAssets: [Asset] {

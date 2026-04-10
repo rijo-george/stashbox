@@ -21,6 +21,11 @@ struct AddAssetSheet: View {
     @State private var warrantyIsLifetime = false
     @State private var coverageDetails = ""
 
+    // Camera
+    @State private var showingCamera = false
+    @State private var showingPhotoPicker = false
+    @State private var attachedDocID: String? = nil
+
     // Pre-fill from OCR
     var prefill: OCRPrefill? = nil
 
@@ -93,6 +98,64 @@ struct AddAssetSheet: View {
                             }
                         }
 
+                        // Attach receipt
+                        VStack(alignment: .leading, spacing: 8) {
+                            sectionLabel("Receipt Photo", tc: tc)
+                            if attachedDocID != nil {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(tc.warrantyActive)
+                                    Text("Receipt attached")
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(tc.textPrimary)
+                                    Spacer()
+                                    Button("Remove") {
+                                        if let id = attachedDocID {
+                                            DocumentStore.shared.deleteDocument(id)
+                                            store.removeDocumentMetadata(id)
+                                        }
+                                        attachedDocID = nil
+                                    }
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(tc.destructive)
+                                }
+                                .padding(12)
+                                .background(tc.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            } else {
+                                HStack(spacing: 10) {
+                                    Button {
+                                        showingCamera = true
+                                    } label: {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "camera")
+                                            Text("Camera")
+                                        }
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundStyle(tc.accent)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(tc.accent.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                    Button {
+                                        showingPhotoPicker = true
+                                    } label: {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "photo")
+                                            Text("Library")
+                                        }
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundStyle(tc.accent)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(tc.accent.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                }
+                            }
+                        }
+
                         // Warranty toggle
                         VStack(alignment: .leading, spacing: 12) {
                             Toggle(isOn: $addWarranty) {
@@ -154,6 +217,29 @@ struct AddAssetSheet: View {
         }
         .presentationDetents([.large])
         .onAppear { applyPrefill() }
+        .fullScreenCover(isPresented: $showingCamera) {
+            ImagePickerView(sourceType: .camera) { image in
+                showingCamera = false
+                attachImage(image)
+            } onCancel: {
+                showingCamera = false
+            }
+            .ignoresSafeArea()
+        }
+        .sheet(isPresented: $showingPhotoPicker) {
+            ImagePickerView(sourceType: .photoLibrary) { image in
+                showingPhotoPicker = false
+                attachImage(image)
+            } onCancel: {
+                showingPhotoPicker = false
+            }
+        }
+    }
+
+    private func attachImage(_ image: UIImage) {
+        let meta = DocumentStore.shared.saveImage(image, type: .receipt)
+        store.addDocumentMetadata(meta)
+        attachedDocID = meta.id
     }
 
     // MARK: - Helpers
@@ -199,7 +285,8 @@ struct AddAssetSheet: View {
             purchaseDate: dateOnlyISO(purchaseDate),
             purchasePrice: price,
             retailer: retailer.trimmingCharacters(in: .whitespaces),
-            warranties: warranties
+            warranties: warranties,
+            documentIDs: attachedDocID.map { [$0] } ?? []
         )
 
         store.addAsset(asset)

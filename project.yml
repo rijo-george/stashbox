@@ -15,7 +15,7 @@ settings:
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     PRODUCT_BUNDLE_IDENTIFIER: com.rijo.stashbox
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "3"
+    CURRENT_PROJECT_VERSION: "4"
     DEVELOPMENT_TEAM: "K8383Q54VB"
     CODE_SIGN_STYLE: Automatic
 
@@ -41,3 +41,22 @@ targets:
           - CloudDocuments
         com.apple.developer.ubiquity-container-identifiers:
           - iCloud.com.rijo.stashbox
+    dependencies:
+      - target: StashBoxShare
+
+  StashBoxShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShareExtension
+    settings:
+      base:
+        PRODUCT_NAME: "StashBoxShare"
+        PRODUCT_BUNDLE_IDENTIFIER: com.rijo.stashbox.share
+        INFOPLIST_FILE: ShareExtension/Info.plist
+        SKIP_INSTALL: true
+    entitlements:
+      path: ShareExtension/ShareExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.rijo.stashbox

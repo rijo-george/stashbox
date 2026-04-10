@@ -64,6 +64,7 @@ class AssetStore: ObservableObject {
             needsSave = !Self.dataEqual(merged, disk)
             DispatchQueue.main.async {
                 self.data = merged
+                SpotlightIndexer.shared.indexAll(assets: merged.assets)
             }
         }
         if needsSave { save() }
@@ -195,6 +196,7 @@ class AssetStore: ObservableObject {
     func addAsset(_ asset: Asset) {
         data.assets.append(asset)
         save()
+        SpotlightIndexer.shared.indexAsset(asset)
     }
 
     func updateAsset(_ asset: Asset) {
@@ -204,6 +206,7 @@ class AssetStore: ObservableObject {
             data.assets[idx] = updated
         }
         save()
+        SpotlightIndexer.shared.indexAsset(asset)
     }
 
     func archiveAsset(_ assetID: String) {
@@ -222,9 +225,19 @@ class AssetStore: ObservableObject {
         save()
     }
 
+    func disposeAsset(_ assetID: String, disposal: DisposalInfo) {
+        if let idx = data.assets.firstIndex(where: { $0.id == assetID }) {
+            data.assets[idx].disposal = disposal
+            data.assets[idx].isArchived = true
+            data.assets[idx].updatedAt = pythonISO()
+        }
+        save()
+    }
+
     func deleteAsset(_ assetID: String) {
         data.assets.removeAll { $0.id == assetID }
         save()
+        SpotlightIndexer.shared.removeAsset(assetID)
     }
 
     func asset(byID id: String) -> Asset? {
