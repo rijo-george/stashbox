@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StashBox — Track Warranties, Receipts & Service Records</title>
+    <meta name="description" content="StashBox keeps your purchases, warranties, and service records in one place. Scan receipts, get expiry reminders, and never lose proof of purchase again.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'IBM Plex Mono','Courier New',monospace;background:#f4efe6;color:#4a3f34;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+        body::before{content:'';position:fixed;inset:0;opacity:.035;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+        .c{max-width:640px;width:100%;padding:0 24px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1}
+        header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:36px 0 0}
+        .wm{font-family:'Special Elite',monospace;font-size:16px;color:#8a7a68;letter-spacing:2px}
+        header a{font-size:12px;color:#a0937f;text-decoration:none;transition:color .3s}header a:hover{color:#4a3f34}
+        .hero{text-align:center;padding:90px 0 50px}
+        .icon{width:80px;height:80px;margin:0 auto 44px;background:linear-gradient(135deg,#2a1f18,#1a1410);border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 40px rgba(40,30,20,.15)}
+        .icon svg{width:32px;height:32px}
+        h1{font-family:'Special Elite',monospace;font-size:clamp(26px,5vw,38px);font-weight:400;color:#1a1a1a;line-height:1.25;margin-bottom:24px}
+        h1 span{color:#c06830}
+        .sub{font-size:14px;line-height:1.8;color:#888;max-width:440px;margin:0 auto 44px}
+        .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 30px;background:rgba(210,120,60,.08);border:1px solid rgba(210,120,60,.15);border-radius:10px;color:#c06830;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;text-decoration:none;transition:all .3s}
+        .btn:hover{background:rgba(210,120,60,.14);transform:translateY(-1px)}
+        .btn svg{width:15px;height:15px;opacity:.7}
+        .meta{margin-top:14px;font-size:11px;color:#aaa}
+        .line{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.06),transparent)}
+        .ver{display:inline-block;font-size:10px;color:#c06830;background:rgba(210,120,60,.08);padding:2px 8px;border-radius:4px;margin-bottom:20px;font-weight:500}
+
+        /* Mockup */
+        .mockup{width:100%;max-width:320px;margin:20px auto 50px}
+        .mock-app{background:#0B0C10;border-radius:28px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.2);border:3px solid #2a2a2a}
+        .mock-status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:10px;color:#666;font-family:'IBM Plex Mono',monospace}
+        .mock-body{padding:0 16px 20px}
+        .mock-title{font-family:'Special Elite',monospace;font-size:22px;color:#eee;margin-bottom:14px}
+        .mock-attention{margin-bottom:14px}
+        .mock-attention-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:10px;color:#FFB833;font-weight:600}
+        .mock-att-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1A1D25;border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,184,51,.15)}
+        .mock-att-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .mock-att-icon{width:24px;height:24px;border-radius:6px;background:rgba(90,156,248,.1);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+        .mock-att-name{font-size:10px;font-weight:600;color:#eee}
+        .mock-att-sub{font-size:8px;color:#FFB833}
+        .mock-att-days{font-size:11px;font-weight:700;color:#FFB833;margin-left:auto;flex-shrink:0}
+        .mock-section-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+        .mock-section-title{font-size:11px;font-weight:600;color:#eee}
+        .mock-section-count{font-size:9px;color:#666}
+        .mock-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#14161C;border-radius:7px;margin-bottom:5px}
+        .mock-row-icon{width:22px;height:22px;border-radius:5px;background:rgba(90,156,248,.08);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+        .mock-row-name{font-size:10px;color:#ccc;font-weight:500}
+        .mock-row-brand{font-size:8px;color:#666}
+        .mock-badge{font-size:7px;font-weight:600;padding:2px 6px;border-radius:8px;margin-left:auto;flex-shrink:0}
+        .mock-tabs{display:flex;justify-content:space-around;padding:10px 0 6px;border-top:1px solid #1A1D25;margin-top:8px}
+        .mock-tab{font-size:8px;color:#555;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .mock-tab.active{color:#5A9CF8}
+        .mock-tab-icon{font-size:14px}
+
+        /* Features */
+        .how{width:100%;padding:48px 0}
+        .how h2{font-family:'Special Elite',monospace;font-size:14px;color:#999;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;text-align:center}
+        .features{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .feat{padding:18px;border-radius:8px;background:rgba(0,0,0,.02);border:1px solid rgba(0,0,0,.04)}
+        .feat h3{font-family:'Special Elite',monospace;font-size:13px;color:#3a2e24;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+        .feat p{font-size:11px;color:#999;line-height:1.6}
+        .about{width:100%;padding:44px 0;text-align:center}
+        .about p{font-size:12px;color:#999;line-height:1.8;max-width:400px;margin:0 auto}
+        footer{width:100%;padding:36px 0;text-align:center}
+        footer p{font-size:11px;color:#bbb}
+        footer a{color:#999;text-decoration:none}footer a:hover{color:#4a3f34}
+        @media(max-width:540px){.features{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <div class="c">
+        <header><div class="wm">stashbox</div><a href="https://github.com/rijo-george/stashbox-ios">github</a></header>
+        <section class="hero">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#d2783c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M12 12v4"/><path d="M2 12h20"/></svg></div>
+            <span class="ver">v1.0 &mdash; iOS</span>
+            <h1>Your purchases. <span>Always accounted for.</span></h1>
+            <p class="sub">Track warranties, receipts, and service records in one place. Scan a receipt, get reminded before it expires, never lose proof of purchase again.</p>
+            <a href="#" class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download for iOS</a>
+            <p class="meta">iOS 17+ &middot; iPhone &amp; iPad &middot; free &middot; privacy-first</p>
+        </section>
+
+        <!-- Mockup: iPhone showing dashboard -->
+        <section class="mockup">
+            <div class="mock-app">
+                <div class="mock-status">
+                    <span>9:41</span>
+                    <span style="letter-spacing:2px">&#8226;&#8226;&#8226;</span>
+                </div>
+                <div class="mock-body">
+                    <div class="mock-title">StashBox</div>
+
+                    <!-- Needs Attention -->
+                    <div class="mock-attention">
+                        <div class="mock-attention-hdr">&#9888;&#65039; Needs Attention <span style="margin-left:auto;background:rgba(255,184,51,.12);padding:1px 6px;border-radius:8px;font-size:8px">2</span></div>
+                        <div class="mock-att-row">
+                            <div class="mock-att-dot" style="background:#FF5A5A"></div>
+                            <div class="mock-att-icon">&#128187;</div>
+                            <div>
+                                <div class="mock-att-name">MacBook Pro</div>
+                                <div class="mock-att-sub">Expires in 3 days</div>
+                            </div>
+                            <div class="mock-att-days">3d</div>
+                        </div>
+                        <div class="mock-att-row">
+                            <div class="mock-att-dot" style="background:#FFB833"></div>
+                            <div class="mock-att-icon">&#128241;</div>
+                            <div>
+                                <div class="mock-att-name">iPhone 17 Pro</div>
+                                <div class="mock-att-sub">Expires in 22 days</div>
+                            </div>
+                            <div class="mock-att-days">22d</div>
+                        </div>
+                    </div>
+
+                    <!-- All Assets -->
+                    <div>
+                        <div class="mock-section-hdr">
+                            <div class="mock-section-title">All Assets</div>
+                            <div class="mock-section-count">5</div>
+                        </div>
+                        <div class="mock-row">
+                            <div class="mock-row-icon">&#128187;</div>
+                            <div><div class="mock-row-name">MacBook Pro</div><div class="mock-row-brand">Apple</div></div>
+                            <div class="mock-badge" style="color:#FF5A5A;background:rgba(255,90,90,.12)">3d left</div>
+                        </div>
+                        <div class="mock-row">
+                            <div class="mock-row-icon">&#128241;</div>
+                            <div><div class="mock-row-name">iPhone 17 Pro</div><div class="mock-row-brand">Apple</div></div>
+                            <div class="mock-badge" style="color:#FFB833;background:rgba(255,184,51,.12)">22d left</div>
+                        </div>
+                        <div class="mock-row">
+                            <div class="mock-row-icon">&#127954;</div>
+                            <div><div class="mock-row-name">Samsung Fridge</div><div class="mock-row-brand">Samsung</div></div>
+                            <div class="mock-badge" style="color:#4DD97A;background:rgba(77,217,122,.12)">364d left</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab bar -->
+                    <div class="mock-tabs">
+                        <div class="mock-tab active"><span class="mock-tab-icon">&#9638;</span>Dashboard</div>
+                        <div class="mock-tab"><span class="mock-tab-icon">&#128230;</span>Assets</div>
+                        <div class="mock-tab"><span class="mock-tab-icon">&#128247;</span>Scan</div>
+                        <div class="mock-tab"><span class="mock-tab-icon">&#9881;</span>Settings</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="line"></div>
+
+        <section class="how">
+            <h2>What's inside</h2>
+            <div class="features">
+                <div class="feat">
+                    <h3>&#128247; Scan Receipts</h3>
+                    <p>Point your camera at any receipt. On-device OCR extracts store, date, amount, and serial number. Your data never leaves your phone.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#128276; Smart Reminders</h3>
+                    <p>Get notified 90, 30, 7, and 1 day before a warranty expires. Customize per product. Never miss a claim window.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#128736; Service Records</h3>
+                    <p>Log every repair, maintenance, and inspection. Track costs, link to warranties, build a full ownership timeline.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#128176; Cost of Ownership</h3>
+                    <p>See the real cost of everything you own. Purchase price plus every repair and service. Track savings from warranty claims.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#128270; Search Everything</h3>
+                    <p>Find any asset by name, brand, retailer, or category. Filter by status. Everything is one search away.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#9729;&#65039; iCloud Sync</h3>
+                    <p>Data syncs across all your devices via iCloud. No account to create, no server to trust. It just works.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#127912; 6 Themes</h3>
+                    <p>Dark, Light, Sunset, Ocean, Forest, Rose. Each with warm colors designed for the content you're looking at.</p>
+                </div>
+                <div class="feat">
+                    <h3>&#128196; Export Anything</h3>
+                    <p>Export individual assets as PDF receipts or all your data as CSV. Your data is always portable.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="line"></div>
+        <section class="about"><p>No account. No cloud service. No tracking. No ads. Just a quiet app that watches the clock on your warranties so you don't have to. Your data never leaves your devices.</p></section>
+        <div class="line"></div>
+        <footer><p>made by <a href="https://rijo.dev">rijo</a> &middot; <a href="https://github.com/rijo-george/stashbox-ios">github</a> &middot; 2026</p></footer>
+    </div>
+</body>
+</html>
