@@ -54,15 +54,69 @@ class DocumentStore {
         )
     }
 
+    // MARK: - Save File (PDF, etc.)
+
+    func saveFile(from sourceURL: URL, type: DocumentType = .other) -> DocumentMetadata? {
+        let id = UUID().uuidString
+        let ext = sourceURL.pathExtension.lowercased()
+        let destURL = baseDir.appendingPathComponent("\(id).\(ext)")
+
+        let coordinator = NSFileCoordinator()
+        var coordError: NSError?
+        var success = false
+
+        // Access security-scoped resource for files from document picker
+        let accessing = sourceURL.startAccessingSecurityScopedResource()
+        defer { if accessing { sourceURL.stopAccessingSecurityScopedResource() } }
+
+        coordinator.coordinate(writingItemAt: destURL, options: .forReplacing, error: &coordError) { url in
+            do {
+                try FileManager.default.copyItem(at: sourceURL, to: url)
+                success = true
+            } catch {}
+        }
+
+        guard success else { return nil }
+
+        let mimeType: String
+        switch ext {
+        case "pdf": mimeType = "application/pdf"
+        case "png": mimeType = "image/png"
+        case "jpg", "jpeg": mimeType = "image/jpeg"
+        case "heic": mimeType = "image/heic"
+        default: mimeType = "application/octet-stream"
+        }
+
+        return DocumentMetadata(
+            id: id,
+            originalFilename: sourceURL.lastPathComponent,
+            type: type,
+            mimeType: mimeType,
+            createdAt: pythonISO()
+        )
+    }
+
+    // MARK: - Load File URL
+
+    func fileURL(for documentID: String) -> URL? {
+        let fm = FileManager.default
+        // Check common extensions
+        for ext in ["jpg", "jpeg", "png", "pdf", "heic"] {
+            let url = baseDir.appendingPathComponent("\(documentID).\(ext)")
+            if fm.fileExists(atPath: url.path) { return url }
+        }
+        return nil
+    }
+
     // MARK: - Load
 
     func loadImage(for documentID: String) -> UIImage? {
-        let fileURL = baseDir.appendingPathComponent("\(documentID).jpg")
+        guard let url = fileURL(for: documentID) else { return nil }
         var result: UIImage?
         let coordinator = NSFileCoordinator()
         var coordError: NSError?
-        coordinator.coordinate(readingItemAt: fileURL, options: [], error: &coordError) { url in
-            if let data = try? Data(contentsOf: url) {
+        coordinator.coordinate(readingItemAt: url, options: [], error: &coordError) { readURL in
+            if let data = try? Data(contentsOf: readURL) {
                 result = UIImage(data: data)
             }
         }
@@ -81,9 +135,10 @@ class DocumentStore {
     // MARK: - Delete
 
     func deleteDocument(_ documentID: String) {
-        let fileURL = baseDir.appendingPathComponent("\(documentID).jpg")
+        if let url = fileURL(for: documentID) {
+            try? FileManager.default.removeItem(at: url)
+        }
         let thumbURL = thumbnailDir.appendingPathComponent("\(documentID)_thumb.jpg")
-        try? FileManager.default.removeItem(at: fileURL)
         try? FileManager.default.removeItem(at: thumbURL)
     }
 }

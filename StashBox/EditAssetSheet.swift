@@ -14,7 +14,6 @@ struct EditAssetSheet: View {
     @State private var purchaseDate: Date
     @State private var purchasePrice: String
     @State private var retailer: String
-    @State private var notes: String
 
     init(asset: Asset) {
         self.asset = asset
@@ -26,7 +25,6 @@ struct EditAssetSheet: View {
         _purchaseDate = State(initialValue: ISO8601Flexible.date(from: asset.purchaseDate) ?? Date())
         _purchasePrice = State(initialValue: asset.purchasePrice.map { String(format: "%.2f", $0) } ?? "")
         _retailer = State(initialValue: asset.retailer)
-        _notes = State(initialValue: asset.notes)
     }
 
     var body: some View {
@@ -95,17 +93,6 @@ struct EditAssetSheet: View {
                             }
                         }
 
-                        VStack(alignment: .leading, spacing: 6) {
-                            sectionLabel("Notes", tc: tc)
-                            TextField("Optional notes...", text: $notes, axis: .vertical)
-                                .font(.system(size: 14))
-                                .foregroundStyle(tc.textPrimary)
-                                .padding(12)
-                                .background(tc.surface)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(tc.borderInactive, lineWidth: 1))
-                                .lineLimit(3...6)
-                        }
                     }
                     .padding(16)
                     .padding(.bottom, 40)
@@ -158,7 +145,6 @@ struct EditAssetSheet: View {
         updated.purchaseDate = dateOnlyISO(purchaseDate)
         updated.purchasePrice = Double(purchasePrice.replacingOccurrences(of: ",", with: ""))
         updated.retailer = retailer.trimmingCharacters(in: .whitespaces)
-        updated.notes = notes.trimmingCharacters(in: .whitespaces)
         store.updateAsset(updated)
         Haptic.fire(.success)
         dismiss()

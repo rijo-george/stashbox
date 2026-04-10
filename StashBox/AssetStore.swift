@@ -272,6 +272,22 @@ class AssetStore: ObservableObject {
         save()
     }
 
+    // MARK: - Notes
+
+    func addNote(_ note: Note, to assetID: String) {
+        guard let idx = data.assets.firstIndex(where: { $0.id == assetID }) else { return }
+        data.assets[idx].notes.append(note)
+        data.assets[idx].updatedAt = pythonISO()
+        save()
+    }
+
+    func deleteNote(_ noteID: String, from assetID: String) {
+        guard let idx = data.assets.firstIndex(where: { $0.id == assetID }) else { return }
+        data.assets[idx].notes.removeAll { $0.id == noteID }
+        data.assets[idx].updatedAt = pythonISO()
+        save()
+    }
+
     // MARK: - Warranty Claim
 
     func addClaim(_ claim: WarrantyClaim, to warrantyID: String, in assetID: String) {

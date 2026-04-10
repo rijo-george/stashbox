@@ -21,7 +21,7 @@ class CSVExporter {
                 asset.expiryStatus.label,
                 asset.latestExpiry.map { dateOnlyISO($0) } ?? "",
                 String(format: "%.2f", asset.totalCostOfOwnership),
-                escapeCSV(asset.notes)
+                escapeCSV(asset.notes.map(\.text).joined(separator: "; "))
             ]
             lines.append(fields.joined(separator: ","))
         }

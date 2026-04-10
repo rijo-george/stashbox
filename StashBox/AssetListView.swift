@@ -161,7 +161,7 @@ struct AssetListView: View {
     private func chipButton(_ title: String, filter: FilterOption, tc: ThemeColors) -> some View {
         let isSelected = filterOption == filter
         return Button {
-            filterOption = filter
+            filterOption = isSelected && filter != .all ? .all : filter
             Haptic.fire(.selectionChanged)
         } label: {
             Text(title)

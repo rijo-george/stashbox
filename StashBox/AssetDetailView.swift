@@ -12,6 +12,8 @@ struct AssetDetailView: View {
     @State private var showingDocuments = false
     @State private var showingDeleteConfirm = false
     @State private var showingExport = false
+    @State private var showingAddNote = false
+    @State private var newNoteText = ""
 
     private var liveAsset: Asset {
         store.asset(byID: asset.id) ?? asset
@@ -486,20 +488,71 @@ struct AssetDetailView: View {
 
     @ViewBuilder
     private func notesSection(_ asset: Asset, tc: ThemeColors) -> some View {
-        if !asset.notes.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
                 Text("Notes")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(tc.textPrimary)
+                Spacer()
+                Button {
+                    showingAddNote = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(tc.accent)
+                }
+            }
 
-                Text(asset.notes)
-                    .font(.system(size: 13))
-                    .foregroundStyle(tc.textSecondary)
+            if asset.notes.isEmpty {
+                HStack {
+                    Image(systemName: "note.text")
+                        .foregroundStyle(tc.textSecondary.opacity(0.5))
+                    Text("No notes yet")
+                        .font(.system(size: 13))
+                        .foregroundStyle(tc.textSecondary)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(tc.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
+                ForEach(asset.notes.sorted(by: {
+                    (ISO8601Flexible.date(from: $0.createdAt) ?? .distantPast) >
+                    (ISO8601Flexible.date(from: $1.createdAt) ?? .distantPast)
+                })) { note in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(note.text)
+                            .font(.system(size: 13))
+                            .foregroundStyle(tc.textPrimary)
+                        Text(relativeDate(note.createdAt))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(tc.textSecondary.opacity(0.6))
+                    }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(tc.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            store.deleteNote(note.id, from: asset.id)
+                            Haptic.fire(.warning)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
             }
+        }
+        .alert("Add Note", isPresented: $showingAddNote) {
+            TextField("Note", text: $newNoteText)
+            Button("Add") {
+                let trimmed = newNoteText.trimmingCharacters(in: .whitespaces)
+                if !trimmed.isEmpty {
+                    store.addNote(Note(text: trimmed), to: asset.id)
+                    Haptic.fire(.success)
+                }
+                newNoteText = ""
+            }
+            Button("Cancel", role: .cancel) { newNoteText = "" }
         }
     }
 

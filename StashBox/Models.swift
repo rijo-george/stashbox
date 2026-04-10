@@ -380,6 +380,20 @@ struct DocumentMetadata: Codable, Identifiable, Hashable {
     }
 }
 
+// MARK: - Note
+
+struct Note: Codable, Identifiable, Hashable {
+    var id: String
+    var text: String
+    var createdAt: String
+
+    init(id: String = UUID().uuidString, text: String = "", createdAt: String = pythonISO()) {
+        self.id = id
+        self.text = text
+        self.createdAt = createdAt
+    }
+}
+
 // MARK: - Asset
 
 struct Asset: Codable, Identifiable, Hashable {
@@ -393,7 +407,7 @@ struct Asset: Codable, Identifiable, Hashable {
     var purchasePrice: Double?
     var purchaseCurrency: String
     var retailer: String
-    var notes: String
+    var notes: [Note]
     var warranties: [Warranty]
     var serviceRecords: [ServiceRecord]
     var documentIDs: [String]
@@ -406,7 +420,7 @@ struct Asset: Codable, Identifiable, Hashable {
          serialNumber: String = "", category: AssetCategory = .electronics,
          purchaseDate: String = dateOnlyISO(), purchasePrice: Double? = nil,
          purchaseCurrency: String = Locale.current.currency?.identifier ?? "USD",
-         retailer: String = "", notes: String = "", warranties: [Warranty] = [],
+         retailer: String = "", notes: [Note] = [], warranties: [Warranty] = [],
          serviceRecords: [ServiceRecord] = [], documentIDs: [String] = [],
          tags: [String] = [], isArchived: Bool = false,
          createdAt: String = pythonISO(), updatedAt: String = pythonISO()) {

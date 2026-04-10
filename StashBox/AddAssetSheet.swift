@@ -13,7 +13,6 @@ struct AddAssetSheet: View {
     @State private var purchaseDate = Date()
     @State private var purchasePrice = ""
     @State private var retailer = ""
-    @State private var notes = ""
 
     // Optional warranty inline
     @State private var addWarranty = false
@@ -132,18 +131,7 @@ struct AddAssetSheet: View {
                             }
                         }
 
-                        // Notes
-                        VStack(alignment: .leading, spacing: 6) {
-                            sectionLabel("Notes", tc: tc)
-                            TextField("Optional notes...", text: $notes, axis: .vertical)
-                                .font(.system(size: 14))
-                                .foregroundStyle(tc.textPrimary)
-                                .padding(12)
-                                .background(tc.surface)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(tc.borderInactive, lineWidth: 1))
-                                .lineLimit(3...6)
-                        }
+                        // Notes can be added from the asset detail view after creation
                     }
                     .padding(16)
                     .padding(.bottom, 40)
@@ -211,7 +199,6 @@ struct AddAssetSheet: View {
             purchaseDate: dateOnlyISO(purchaseDate),
             purchasePrice: price,
             retailer: retailer.trimmingCharacters(in: .whitespaces),
-            notes: notes.trimmingCharacters(in: .whitespaces),
             warranties: warranties
         )
 
